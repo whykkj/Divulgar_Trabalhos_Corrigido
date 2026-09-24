@@ -1,0 +1,73 @@
+DIVULGAR TRABALHOS — COMO ABRIR NO VS CODE
+
+1. Extraia o ZIP em uma pasta NOVA. Não substitua a pasta antiga.
+2. No VS Code: Arquivo > Abrir Pasta > selecione divulgar-trabalhos.
+   O package.json deve aparecer diretamente nessa pasta, junto de src e public.
+3. É necessário ter Node.js 22.12 ou superior instalado (ex.: versão 24).
+4. No VS Code: Terminal > Executar Tarefa (Run Task).
+   Escolha "1 - Instalar dependencias" e aguarde terminar sem erros.
+   É necessário acesso à internet para baixar as dependências.
+5. Novamente em Terminal > Executar Tarefa, escolha "2 - Iniciar site".
+   Abra no navegador o endereço Local mostrado (normalmente http://localhost:5173).
+   Deixe essa tarefa em execução enquanto usa o site.
+
+Não é necessário digitar comandos: as tarefas estão prontas no VS Code.
+Se o VS Code perguntar se confia na pasta, confirme apenas depois de reconhecer
+que esta é a pasta do projeto que você solicitou.
+
+PUBLICAR NO SEU GITHUB, SEM DIGITAR COMANDOS
+
+1. Abra Controle do Código-Fonte (Ctrl + Shift + G).
+2. Clique em "Publicar no GitHub / Publish to GitHub".
+   Se não aparecer, use Ctrl + Shift + P e procure "Publish to GitHub".
+   Se aparecer apenas "Inicializar Repositório", clique e procure a publicação.
+3. Faça login na SUA conta, caso seja solicitado.
+4. Escolha um nome novo para o repositório e a visibilidade pública ou privada.
+5. Confira os arquivos e confirme. node_modules, dist e .env são ignorados.
+6. Clique em "Open on GitHub" para conferir o envio.
+
+A pasta foi entregue sem .git: não carrega o rebase travado nem o vínculo com
+o repositório anterior. Seu ZIP original não foi alterado no computador.
+Abra esta pasta extraída, e não a pasta antiga, para publicar a versão corrigida.
+O envio do código ao GitHub não coloca o site automaticamente no ar.
+
+O QUE ESTA VERSÃO FAZ
+
+- Front-end Vue 3 com as 12 telas/rotas existentes, preservando o visual.
+- Navegação entre categorias, pesquisa, filtros e visualização de perfis de exemplo.
+- Menus de conta/configurações e busca em telas pequenas.
+- Cadastros e login DEMONSTRATIVOS, sem autenticação real e sem guardar senhas.
+- Perfil profissional salvo como rascunho apenas neste navegador.
+  Acesse "Minha conta > Rascunho profissional" após entrar no modo de demonstração.
+- Avisos para recursos ainda indisponíveis, como mensagens e recuperação de senha.
+
+LIMITAÇÕES QUE JÁ EXISTIAM NO PROJETO
+
+O ZIP recebido continha somente o front-end. Não contém servidor, APIs nem banco.
+Entrar/cadastrar NÃO valida credenciais ou cria usuários reais. Use dados fictícios.
+O rascunho profissional não aparece nas listagens públicas de profissionais.
+Os profissionais, avaliações, estatísticas e distâncias são demonstrativos;
+a opção de proximidade não usa sua localização real.
+Não há envio de mensagens, contratação, agendamento ou notificações reais.
+Fotos e fontes externas dependem de internet; fotos indisponíveis usam imagem local.
+Favoritos das categorias ficam na memória da tela e podem ser perdidos ao sair dela.
+
+CORREÇÕES PRINCIPAIS
+
+- Remoção de marcações de Markdown nos arquivos Vue.
+- Remoção do arquivo Vue vazio com nome incorreto e da cópia antiga de Início.
+- Correção da navegação duplicada no botão Voltar do cadastro de empreendedor.
+- Correção da busca móvel de Construção e Beleza e dos botões sem ação.
+- Perfis de Beleza e Construção abrem uma janela com os dados do profissional.
+- Botões de favoritos de Beleza e Eventos filtram sem apagar as seleções.
+- Pesquisa das categorias aceita palavras sem acentos.
+- Login/cadastros atualizam o estado visual de sessão de forma consistente.
+- Correção de CSS global duplicado e ajustes de classes do Tailwind 4.
+- Rota desconhecida retorna ao início; links de categorias rolam até a seção.
+- .gitignore, tarefas do VS Code e lockfile preparados para instalação limpa.
+
+VERIFICAÇÃO
+
+Compilação de produção e compilação dos componentes Vue verificadas.
+Fluxos de tela verificados automaticamente com Vue em DOM simulado.
+Esses testes não equivalem a uma revisão visual em todos os navegadores.
