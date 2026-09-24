@@ -47,3 +47,8 @@ A pasta é entregue sem histórico `.git` para publicação em um repositório n
 Fotos e fontes externas dependem de internet; fotos indisponíveis usam um recurso local.
 Para publicar o site em um servidor, além do repositório, configure fallback das rotas
 para `index.html`, pois o roteador utiliza `createWebHistory`.
+
+
+
+
+testestestestes
