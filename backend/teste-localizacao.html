@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Teste de Geolocalização</title>
+</head>
+
+<body>
+
+    <h1>Teste de localização</h1>
+
+    <button onclick="obterLocalizacao()">
+        Usar minha localização
+    </button>
+
+    <p id="status"></p>
+
+    <pre id="resultado"></pre>
+
+
+    <script>
+
+        function obterLocalizacao() {
+
+            const status = document.getElementById('status');
+            const resultado = document.getElementById('resultado');
+
+            // Verifica se o navegador possui geolocalização
+            if (!navigator.geolocation) {
+
+                status.innerText =
+                    'Seu navegador não suporta geolocalização.';
+
+                return;
+            }
+
+
+            status.innerText =
+                'Obtendo sua localização...';
+
+
+            navigator.geolocation.getCurrentPosition(
+
+                // SUCESSO
+                async (posicao) => {
+
+                    const latitude =
+                        posicao.coords.latitude;
+
+                    const longitude =
+                        posicao.coords.longitude;
+
+
+                    status.innerText =
+                        'Localização encontrada!';
+
+
+                    try {
+
+                        // Envia as coordenadas para nossa API
+                        const resposta = await fetch(
+
+                            `http://localhost:3000/api/profissionais/proximos?latitude=${latitude}&longitude=${longitude}&raio=5`
+
+                        );
+
+
+                        const dados =
+                            await resposta.json();
+
+
+                        resultado.textContent =
+                            JSON.stringify(
+                                dados,
+                                null,
+                                2
+                            );
+
+
+                    } catch (erro) {
+
+                        status.innerText =
+                            'Erro ao consultar a API.';
+
+                        console.error(erro);
+
+                    }
+
+                },
+
+
+                // ERRO
+                (erro) => {
+
+                    console.error(erro);
+
+                    if (erro.code === 1) {
+
+                        status.innerText =
+                            'Permissão de localização negada.';
+
+                    }
+
+                    else if (erro.code === 2) {
+
+                        status.innerText =
+                            'Não foi possível descobrir sua localização.';
+
+                    }
+
+                    else if (erro.code === 3) {
+
+                        status.innerText =
+                            'Tempo esgotado ao buscar localização.';
+
+                    }
+
+                    else {
+
+                        status.innerText =
+                            'Erro ao obter localização.';
+
+                    }
+
+                }
+
+            );
+
+        }
+
+    </script>
+
+</body>
+
+</html>
