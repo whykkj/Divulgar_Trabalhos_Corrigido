@@ -17,7 +17,7 @@ const termoPesquisado = ref('')
 const profissionalSelecionado = ref(null)
 const mostrarResultadosBusca = ref(false)
 
-/* VERIFICA SE O USUÁRIO ESTÁ LOGADO */
+
 const usuarioLogado = ref(false)
 
 function atualizarUsuarioLogado() {
@@ -95,20 +95,20 @@ const profissionais = [
     profissao: 'Eletricista & Manutenção',
     avaliacao: '4.9',
     avaliacoes: 84,
-    bairro: 'Pinheiros, SP',
+    bairro: 'Alcindo, Belém PA',
     categoria: 'Construção',
     imagem:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDY80d73K5Q80t5eha8-jPIaDF-SkOmXG74fImcNA5C1WWxe64A604TDm-rl4-OgTFwJBxy5r0U-yFtTx4gOdUFnYSt0tnVoPpWMZ57vM5bPrlW8Yo4mgtfqr1DdSmaztppHWXjuL3L19GBdMTSg0PXobKW17fJMvlRq5ev34ryJfH_reYwbWO8vvHwAXDjteL7-nFQXgur70JSFACKcuBgOOoOryBrROKcezd7rgygSdfmJ38KQgnr'
+      'https://imgs.search.brave.com/r7_UXOZ3ZpEEvw_vx4XKzgt_fn0zPNhfY33TVkbTtRw/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3RpL2ZvdG9z/LWdyYXRpcy90Mi80/MzI3MTcyOS1ib25p/dG8tam92ZW0taG9t/ZW0tZWxldHJpY2lz/dGEtdHJhYmFsaGFu/ZG8tZW0tcXVhZHJv/LWRlLWRpc3RyaWJ1/aWNhby1kby1jYXNh/LWNvbnN0cnVjYW8t/Y29uc3RydWNhby1s/b2NhbC1mb3RvLmpw/Zw'
   },
   {
     nome: 'Marcos Vinícius',
     profissao: 'Pintor & Reformas',
     avaliacao: '5.0',
     avaliacoes: 112,
-    bairro: 'Vila Mariana, SP',
+    bairro: 'Angustura, Belém PA',
     categoria: 'Construção',
     imagem:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDY80d73K5Q80t5eha8-jPIaDF-SkOmXG74fImcNA5C1WWxe64A604TDm-rl4-OgTFwJBxy5r0U-yFtTx4gOdUFnYSt0tnVoPpWMZ57vM5bPrlW8Yo4mgtfqr1DdSmaztppHWXjuL3L19GBdMTSg0PXobKW17fJMvlRq5ev34ryJfH_reYwbWO8vvHwAXDjteL7-nFQXgur70JSFACKcuBgOOoOryBrROKcezd7rgygSdfmJ38KQgnr'  
+      'https://imgs.search.brave.com/ph3JR_n9bRDgQUS-PUxH5aL1sWkpLN01SqZ_2W63LW8/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3RpL2ZvdG9z/LWdyYXRpcy90Mi80/NTgwNjk1MC1waW50/b3ItaG9tZW0tZXNj/b3ZhLWRlbnRyby1t/YW8tcGFyYS1wcm9k/dXRvcy1wYXJhLXJl/c3RhdXJhci1lLXBp/bnR1cmEtYS1wYXJl/ZGUtaW50ZXJpb3It/YS1jb25zdHJ1Y2Fv/LWxvY2FsLWRvLXVt/YS1jYXNhLXBhcmVk/ZS1kdXJhbnRlLXBp/bnR1cmEtcmVub3Zh/Y2FvLXBpbnR1cmEt/Y29udHJhdGFudGUt/YXJxdWl0ZXRvLWNv/bnN0cnVjYW8tdHJh/YmFsaGFkb3ItZm90/by5qcGc'  
   }
 ]
 
@@ -292,9 +292,9 @@ function fecharPerfil() {
           class="group flex items-center gap-3 shrink-0"
         >
           <div
-            class="w-11 h-11 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center text-xl transition-all duration-300 group-hover:bg-[#D94E1E] group-hover:scale-105 group-hover:shadow-md"
+            class="w-11 h-11 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center text-xl transition-all duration-300 group-hover:scale-105 "
           >
-            🏙️
+          <img src="https://cdn.discordapp.com/attachments/1422666464778911844/1552841146684932216/IMG-20260918-WA0020.jpg?ex=6ab71383&is=6ab5c203&hm=16ef09cf34af43b7a2d94a6cd03011a53a8d4f38c4161fc2095a1396fcaa6c87&"alt="logo" class="w-8 h-8 rounded-full object-cover" />
           </div>
 
           <div class="hidden sm:block text-left">
@@ -361,7 +361,7 @@ function fecharPerfil() {
           <button
             type="button"
 
-            @click="focarBusca"
+            @click="$router.push('/servicos-gerais')"
 
             class="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 transition-all hover:bg-slate-50 hover:text-[#D94E1E]"
           >

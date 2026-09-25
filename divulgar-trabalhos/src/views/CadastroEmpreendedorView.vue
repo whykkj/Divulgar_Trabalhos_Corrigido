@@ -54,10 +54,7 @@ function cadastrar() {
   cadastroTimer = setTimeout(() => {
 
 
-    // SALVA QUE O USUÁRIO ESTÁ LOGADO
     iniciarSessaoDemo()
-
-    // VAI PARA O PERFIL DO EMPREENDEDOR
 
     cadastrando.value = false
     router.push('/cadastro/empreendedor/perfil')
@@ -65,7 +62,7 @@ function cadastrar() {
 }
 
 function voltarCadastro() {
-  router.push('/cadastro')
+  router.push('/')
 
 }
 
