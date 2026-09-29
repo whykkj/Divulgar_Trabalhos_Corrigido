@@ -1,5 +1,5 @@
+```vue
 <script setup>
-import { iniciarSessaoDemo, informar } from '../utils/interface'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -9,19 +9,57 @@ const email = ref('')
 const senha = ref('')
 const mostrarSenha = ref(false)
 const erro = ref('')
+const entrando = ref(false)
 
-function fazerLogin() {
+async function fazerLogin() {
   erro.value = ''
+
+  email.value = email.value.trim().toLowerCase()
 
   if (!email.value || !senha.value) {
     erro.value = 'Preencha todos os campos.'
     return
   }
 
-  // Por enquanto, apenas simulamos o login.
-  // O backend será conectado posteriormente.
-  iniciarSessaoDemo()
-  router.push('/')
+  entrando.value = true
+
+  try {
+    const resposta = await fetch('http://localhost:3000/api/usuarios/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email.value,
+        senha: senha.value
+      })
+    })
+
+    const dados = await resposta.json()
+
+    if (!resposta.ok) {
+      erro.value = dados.erro || 'E-mail ou senha incorretos.'
+      return
+    }
+
+    // Marca que existe uma sessão ativa
+    localStorage.setItem('usuarioLogado', 'true')
+
+    // Guarda os dados do usuário retornados pelo backend
+    localStorage.setItem(
+      'usuario',
+      JSON.stringify(dados.usuario)
+    )
+
+    router.push('/')
+  } catch (error) {
+    console.error('Erro ao fazer login:', error)
+
+    erro.value =
+      'Não foi possível conectar ao servidor. Verifique se o backend está funcionando.'
+  } finally {
+    entrando.value = false
+  }
 }
 
 function irParaCadastro() {
@@ -66,7 +104,7 @@ function irParaCadastro() {
           </p>
         </div>
 
-        <p class="mb-4 rounded-xl bg-orange-50 p-3 text-xs text-slate-600">Demonstração: não cria conta real nem verifica credenciais. Use dados fictícios; a senha não é armazenada.</p>
+        <p class="mb-4 rounded-xl bg-orange-50 p-3 text-xs text-slate-600">Entre com o e-mail e a senha cadastrados na sua conta.</p>
         <form
           @submit.prevent="fazerLogin"
           class="space-y-4"
@@ -108,11 +146,11 @@ function irParaCadastro() {
               />
 
               <button
-                type="button"
-                @click="mostrarSenha = !mostrarSenha"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-[#D94E1E] hover:text-[#B83F17] transition-colors"
-              >
-                {{ mostrarSenha ? 'Ocultar' : 'Mostrar' }}
+            type="submit"
+            :disabled="entrando"
+          class="w-full bg-[#D94E1E] text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-[#C34418] active:scale-[0.99] transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+             {{ entrando ? 'Entrando...' : 'Entrar' }}
               </button>
             </div>
           </div>

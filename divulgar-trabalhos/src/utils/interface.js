@@ -7,7 +7,19 @@ export function normalizarTexto(texto = '') {
 }
 // Estado visual do protótipo. Não autentica usuários e não guarda senhas.
 export function iniciarSessaoDemo() {
-  try { localStorage.setItem('usuarioLogado', 'true') } catch { /* Armazenamento indisponível. */ }
+  try {
+    localStorage.setItem('usuarioLogado', 'true')
+
+    // Usuário de demonstração
+    localStorage.setItem(
+      'usuario',
+      JSON.stringify({
+        id: 1
+      })
+    )
+  } catch {
+    // Armazenamento indisponível.
+  }
 }
 export function focarBusca() {
   const campo = document.querySelector('main input[type="text"]')

@@ -1,16 +1,24 @@
+require('dotenv').config();
+
+const sequelize = require('./database/database');
+const Profissional = require('./models/Profissional');
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
-require('dotenv').config();
+
 const geocodificacaoRoutes =
     require('./routes/geocodificacaoRoutes');
 
 const cepRoutes = require('./routes/cepRoutes');
 const localizacaoRoutes = require('./routes/localizacaoRoutes');
-const profissionaisRoutes = require('./routes/profissionaisRoutes');
+const profissionaisRoutes = require('./routes/profissionaisRoutes');    
 const enderecoRoutes =
     require('./routes/enderecoRoutes');
+const agendamentoRoutes =
+    require('./routes/agendamentoRoutes');
+const usuariosRoutes = require('./routes/usuariosRoutes');
 
 const app = express();
 
@@ -32,6 +40,14 @@ app.use(
 app.use(
     '/api/endereco',
     enderecoRoutes
+);
+app.use(
+    '/api/agendamentos',
+    agendamentoRoutes
+);
+app.use(
+    '/api/usuarios',
+    usuariosRoutes
 );
 
 // ROTA PRINCIPAL
@@ -62,6 +78,13 @@ app.get('/teste-localizacao', (req, res) => {
 const PORT =
     process.env.PORT || 3000;
 
+sequelize.sync()
+    .then(() => {
+        console.log('Banco MySQL conectado!');
+    })
+    .catch((erro) => {
+        console.error('Erro ao conectar ao banco:', erro);
+    });
 
 app.listen(PORT, () => {
 

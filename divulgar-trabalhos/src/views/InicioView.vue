@@ -1,5 +1,5 @@
 <script setup>
-import { informar } from '../utils/interface'
+import { informar, normalizarTexto } from '../utils/interface'
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -16,6 +16,7 @@ const buscaPrincipalInput = ref(null)
 const termoPesquisado = ref('')
 const profissionalSelecionado = ref(null)
 const mostrarResultadosBusca = ref(false)
+const localizacaoAtual = ref(null)
 
 
 const usuarioLogado = ref(false)
@@ -28,6 +29,125 @@ function atualizarUsuarioLogado() {
   }
 }
 
+function obterLocalizacao() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Seu navegador não suporta localização.'))
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (posicao) => {
+        resolve({
+          latitude: posicao.coords.latitude,
+          longitude: posicao.coords.longitude
+        })
+      },
+      (erro) => {
+        reject(erro)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000
+      }
+    )
+  })
+}
+
+async function carregarProfissionais(termoBusca = '') {
+  carregandoProfissionais.value = true
+  erroProfissionais.value = ''
+
+  try {
+    const localizacao = await obterLocalizacao()
+
+    localizacaoAtual.value = localizacao
+
+    const params = new URLSearchParams({
+      latitude: String(localizacao.latitude),
+      longitude: String(localizacao.longitude),
+      raio: String(distanciaMaxima.value)
+    })
+
+    if (termoBusca.trim()) {
+      params.set('busca', termoBusca.trim())
+    }
+
+    const resposta = await fetch(
+      `/api/profissionais/proximos?${params.toString()}`
+    )
+
+    if (!resposta.ok) {
+      throw new Error(`Erro HTTP ${resposta.status}`)
+    }
+
+    const dados = await resposta.json()
+
+    const lista = Array.isArray(dados)
+      ? dados
+      : dados.profissionais || []
+
+    profissionais.value = lista.map((profissional) => ({
+  ...profissional,
+
+  id: profissional.id,
+
+  nome:
+    profissional.nome ||
+    profissional.nome_completo ||
+    profissional.nomeCompleto ||
+    'Profissional',
+
+  profissao:
+    profissional.profissao ||
+    profissional.profissão ||
+    profissional.servico ||
+    'Serviço não informado',
+
+  categoria:
+    profissional.categoria ||
+    '',
+
+  bairro:
+    profissional.bairro ||
+    profissional.endereco ||
+    profissional.localizacao ||
+    'Localização não informada',
+
+  avaliacao:
+    profissional.avaliacao ||
+    profissional.nota ||
+    '0',
+
+  avaliacoes:
+    profissional.avaliacoes ||
+    profissional.quantidade_avaliacoes ||
+    0,
+
+  imagem:
+    profissional.imagem ||
+    profissional.foto ||'',
+
+  distancia:
+    Number(profissional.distancia || 0)
+}))
+
+  } catch (erro) {
+    console.error('Erro ao carregar profissionais:', erro)
+
+    if (erro.code === 1) {
+      erroProfissionais.value =
+        'Precisamos da sua localização para encontrar profissionais próximos.'
+    } else {
+      erroProfissionais.value =
+        'Não foi possível carregar os profissionais.'
+    }
+  } finally {
+    carregandoProfissionais.value = false
+  }
+}
+
 function aoPressionarTecla(evento) {
   if (evento.key === 'Escape') {
     fecharMenus()
@@ -35,8 +155,12 @@ function aoPressionarTecla(evento) {
   }
 }
 
+
 onMounted(() => {
   atualizarUsuarioLogado()
+
+  carregarProfissionais()
+
   document.addEventListener('click', fecharMenus)
   document.addEventListener('keydown', aoPressionarTecla)
   window.addEventListener('storage', atualizarUsuarioLogado)
@@ -89,51 +213,32 @@ const categorias = [
   }
 ]
 
-const profissionais = [
-  {
-    nome: 'Carlos Eduardo Silveira',
-    profissao: 'Eletricista & Manutenção',
-    avaliacao: '4.9',
-    avaliacoes: 84,
-    bairro: 'Alcindo, Belém PA',
-    categoria: 'Construção',
-    imagem:
-      'https://imgs.search.brave.com/r7_UXOZ3ZpEEvw_vx4XKzgt_fn0zPNhfY33TVkbTtRw/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3RpL2ZvdG9z/LWdyYXRpcy90Mi80/MzI3MTcyOS1ib25p/dG8tam92ZW0taG9t/ZW0tZWxldHJpY2lz/dGEtdHJhYmFsaGFu/ZG8tZW0tcXVhZHJv/LWRlLWRpc3RyaWJ1/aWNhby1kby1jYXNh/LWNvbnN0cnVjYW8t/Y29uc3RydWNhby1s/b2NhbC1mb3RvLmpw/Zw'
-  },
-  {
-    nome: 'Marcos Vinícius',
-    profissao: 'Pintor & Reformas',
-    avaliacao: '5.0',
-    avaliacoes: 112,
-    bairro: 'Angustura, Belém PA',
-    categoria: 'Construção',
-    imagem:
-      'https://imgs.search.brave.com/ph3JR_n9bRDgQUS-PUxH5aL1sWkpLN01SqZ_2W63LW8/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3RpL2ZvdG9z/LWdyYXRpcy90Mi80/NTgwNjk1MC1waW50/b3ItaG9tZW0tZXNj/b3ZhLWRlbnRyby1t/YW8tcGFyYS1wcm9k/dXRvcy1wYXJhLXJl/c3RhdXJhci1lLXBp/bnR1cmEtYS1wYXJl/ZGUtaW50ZXJpb3It/YS1jb25zdHJ1Y2Fv/LWxvY2FsLWRvLXVt/YS1jYXNhLXBhcmVk/ZS1kdXJhbnRlLXBp/bnR1cmEtcmVub3Zh/Y2FvLXBpbnR1cmEt/Y29udHJhdGFudGUt/YXJxdWl0ZXRvLWNv/bnN0cnVjYW8tdHJh/YmFsaGFkb3ItZm90/by5qcGc'  
-  }
-]
+const profissionais = ref([])
+
+const carregandoProfissionais = ref(false)
+const erroProfissionais = ref('')
+const distanciaMaxima = ref(10);
 
 const profissionaisFiltrados = computed(() => {
   const termo = normalizarTexto(termoPesquisado.value)
 
   if (!termo) {
-    return profissionais
+    return profissionais.value
   }
 
-  return profissionais.filter((profissional) => {
+  return profissionais.value.filter((profissional) => {
     return (
-      normalizarTexto(profissional.nome).includes(termo) ||
-      normalizarTexto(profissional.profissao).includes(termo) ||
-      normalizarTexto(profissional.bairro).includes(termo) ||
-      normalizarTexto(profissional.categoria).includes(termo)
+      normalizarTexto(profissional.nome || '').includes(termo) ||
+      normalizarTexto(profissional.profissao || '').includes(termo) ||
+      normalizarTexto(profissional.bairro || '').includes(termo) ||
+      normalizarTexto(profissional.categoria || '').includes(termo)
     )
   })
 })
 
-function normalizarTexto(texto) {
-  return texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-}
 
-function buscar() {
+
+async function buscar() {
   const termo = busca.value.trim()
 
   if (!termo) {
@@ -143,6 +248,8 @@ function buscar() {
 
   termoPesquisado.value = termo
   fecharMenus()
+
+  await carregarProfissionais(termo)
   mostrarResultadosBusca.value = true
   mostrarTodosProfissionais.value = true
 
@@ -175,11 +282,13 @@ async function focarBusca() {
   }
 }
 
-function limparBusca() {
+async function limparBusca() {
   busca.value = ''
   termoPesquisado.value = ''
   mostrarResultadosBusca.value = false
   mostrarTodosProfissionais.value = false
+
+  await carregarProfissionais()
 
   nextTick(() => {
     focarBusca()
@@ -264,8 +373,19 @@ function alternarProfissionais() {
 }
 
 function abrirPerfil(profissional) {
-  profissionalSelecionado.value = profissional
   fecharMenus()
+
+  if (!profissional?.id) {
+    console.error('Profissional sem ID:', profissional)
+    return
+  }
+
+  router.push({
+    name: 'profissional',
+    params: {
+      id: profissional.id
+    }
+  })
 }
 
 function fecharPerfil() {

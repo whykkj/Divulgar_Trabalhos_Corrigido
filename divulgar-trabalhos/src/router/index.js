@@ -12,6 +12,8 @@ import CadastroEmpreendedorView from '../views/CadastroEmpreendedorView.vue'
 import PerfilEmpreendedorView from '../views/PerfilEmpreendedorView.vue'
 import FotografiaView from '../views/FotografiaView.vue'
 import EventosView from '../views/EventosView.vue'
+import ProfissionalView from '../views/ProfissionalView.vue'
+import AgendamentoView from '../views/AgendamentoView.vue'
 
 const router = createRouter({
 history: createWebHistory(),
@@ -73,6 +75,18 @@ routes: [
     name: 'tecnologia',
     component: TecnologiaView
   },
+
+  {
+  path: '/profissional/:id',
+  name: 'profissional',
+  component: ProfissionalView
+  },
+  {
+  path: '/agendamento/:id',
+  name: 'agendamento',
+  component: AgendamentoView
+},
+
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ],
 
