@@ -1,6 +1,5 @@
 <script setup>
-import { iniciarSessaoDemo } from '../utils/interface'
-import { ref, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -15,10 +14,7 @@ const mostrarConfirmarSenha = ref(false)
 
 const erro = ref('')
 const cadastrando = ref(false)
-let cadastroTimer
-onUnmounted(() => clearTimeout(cadastroTimer))
-
-function cadastrar() {
+async function cadastrar() {
   if (cadastrando.value) return
   nome.value = nome.value.trim()
   email.value = email.value.trim()
@@ -50,15 +46,31 @@ function cadastrar() {
   }
 
   cadastrando.value = true
-
-  cadastroTimer = setTimeout(() => {
-
-
-    iniciarSessaoDemo()
-
-    cadastrando.value = false
+  try {
+    const resposta = await fetch('http://localhost:3000/api/usuarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome: nome.value,
+        email: email.value.toLowerCase(),
+        senha: senha.value,
+        tipo: 'empreendedor'
+      })
+    })
+    const dados = await resposta.json()
+    if (!resposta.ok) {
+      erro.value = dados.erro || 'Não foi possível criar a conta.'
+      return
+    }
+    localStorage.setItem('usuarioLogado', 'true')
+    localStorage.setItem('usuario', JSON.stringify(dados.usuario))
     router.push('/cadastro/empreendedor/perfil')
-  }, 700)
+  } catch (error) {
+    console.error('Erro ao cadastrar empreendedor:', error)
+    erro.value = 'Não foi possível conectar ao servidor. Verifique se o backend está funcionando.'
+  } finally {
+    cadastrando.value = false
+  }
 }
 
 function voltarCadastro() {
@@ -140,7 +152,6 @@ function voltarLogin() {
         </div>
 
         <!-- FORMULÁRIO -->
-        <p class="mb-4 rounded-xl bg-orange-50 p-3 text-xs text-slate-600">Demonstração: não cria conta real nem verifica credenciais. Use dados fictícios; a senha não é armazenada.</p>
         <form
           @submit.prevent="cadastrar"
           class="space-y-4"

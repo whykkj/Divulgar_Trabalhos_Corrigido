@@ -1,10 +1,12 @@
 const express = require('express');
+const { Op } = require('sequelize');
 
 const calcularDistancia =
     require('../utils/calcularDistancia');
 
 const Profissional =
-    require('../models/Profissional');
+    require('../models/profissional');
+const Usuario = require('../models/Usuario');
 
 const router = express.Router();
 
@@ -88,6 +90,10 @@ router.get('/proximos', async (req, res) => {
         // ==================================================
 
         let resultado = await Profissional.findAll({
+            where: {
+                latitude: { [Op.ne]: null },
+                longitude: { [Op.ne]: null }
+            },
             raw: true
         });
 
@@ -322,19 +328,29 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
 
     try {
+        const { usuario_id, nome, profissao, categoria, descricao, telefone, bairro, cidade, latitude, longitude } = req.body;
+        if (!usuario_id || !nome?.trim() || !profissao?.trim() || !categoria?.trim() || !descricao?.trim() || !telefone?.trim() || !bairro?.trim() || !cidade?.trim() || !Number.isFinite(Number(latitude)) || !Number.isFinite(Number(longitude))) {
+            return res.status(400).json({ erro: 'Informe usuário, nome, profissão, categoria, descrição, telefone e bairro.' });
+        }
 
-        const profissional =
-            await Profissional.create(req.body);
+        const usuario = await Usuario.findByPk(usuario_id);
+        if (!usuario || usuario.tipo !== 'empreendedor') {
+            return res.status(400).json({ erro: 'A conta informada não é uma conta de profissional válida.' });
+        }
 
+        const existente = await Profissional.findOne({ where: { usuario_id } });
+        if (existente) {
+            return res.status(409).json({ erro: 'Esta conta já possui um perfil profissional cadastrado.' });
+        }
 
-        res.status(201).json({
-
-            mensagem:
-                'Profissional cadastrado com sucesso',
-
-            profissional
-
+        const profissional = await Profissional.create({
+            usuario_id, nome: nome.trim(), profissao: profissao.trim(),
+            categoria: categoria.trim(), descricao: descricao.trim(),
+            telefone: telefone.trim(), bairro: bairro.trim(), cidade: cidade.trim(),
+            latitude: Number(latitude), longitude: Number(longitude)
         });
+
+        res.status(201).json({ mensagem: 'Profissional cadastrado com sucesso', profissional });
 
     } catch (erro) {
 

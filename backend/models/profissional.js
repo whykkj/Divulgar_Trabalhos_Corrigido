@@ -9,6 +9,12 @@ const Profissional = sequelize.define('Profissional', {
         autoIncrement: true
     },
 
+    usuario_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        unique: true
+    },
+
     nome: {
         type: DataTypes.STRING,
         allowNull: false

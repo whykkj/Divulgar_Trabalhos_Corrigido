@@ -2,10 +2,11 @@ const express = require('express');
 const { Op } = require('sequelize');
     
 const Agendamento =
-    require('../models/Agendamento');
+    require('../models/agendamento');
 
 const Profissional =
-    require('../models/Profissional');
+    require('../models/profissional');
+const Usuario = require('../models/Usuario');
 
 const router = express.Router();
 
@@ -49,6 +50,12 @@ router.post('/', async (req, res) => {
         const profissional =
             await Profissional.findByPk(profissional_id);
 
+        const cliente = await Usuario.findByPk(cliente_id);
+
+
+        if (!cliente || cliente.tipo !== 'cliente') {
+            return res.status(400).json({ erro: 'A conta informada não é uma conta de cliente válida.' });
+        }
 
         if (!profissional) {
 
@@ -72,7 +79,12 @@ router.post('/', async (req, res) => {
         }
 
 
-        let fim = null;
+        if (inicio <= new Date()) {
+            return res.status(400).json({ erro: 'Não é possível agendar em uma data ou horário passado.' });
+        }
+
+        // Quando o cliente não informa duração, reserva um intervalo padrão de 1 hora.
+        let fim = new Date(inicio.getTime() + 60 * 60 * 1000);
 
         if (data_hora_fim) {
 
@@ -102,19 +114,21 @@ router.post('/', async (req, res) => {
         // VERIFICAR CONFLITO
         // ------------------------------
 
-        const conflito =
-            await Agendamento.findOne({
-                where: {
-                    profissional_id,
-                    data_hora_inicio: inicio,
-                    status: {
-                     [Op.in]: [
-                         'pendente',
-                         'confirmado'
-                        ]
-        }
-                }
-            });
+        const agendamentosAtivos = await Agendamento.findAll({
+            where: {
+                profissional_id,
+                status: { [Op.in]: ['pendente', 'confirmado'] }
+            },
+            attributes: ['id', 'data_hora_inicio', 'data_hora_fim']
+        });
+
+        const conflito = agendamentosAtivos.find((item) => {
+            const inicioExistente = new Date(item.data_hora_inicio);
+            const fimExistente = item.data_hora_fim
+                ? new Date(item.data_hora_fim)
+                : new Date(inicioExistente.getTime() + 60 * 60 * 1000);
+            return inicio < fimExistente && fim > inicioExistente;
+        });
 
 
         if (conflito) {
@@ -225,5 +239,33 @@ router.get('/profissional/:id', async (req, res) => {
 
 });
 
+
+// GET /api/agendamentos/cliente/:id
+router.get('/cliente/:id', async (req, res) => {
+    try {
+        const clienteId = Number(req.params.id);
+        if (!Number.isInteger(clienteId) || clienteId <= 0) {
+            return res.status(400).json({ erro: 'ID do cliente inválido.' });
+        }
+        const cliente = await Usuario.findByPk(clienteId);
+        if (!cliente || cliente.tipo !== 'cliente') {
+            return res.status(404).json({ erro: 'Cliente não encontrado.' });
+        }
+        const agendamentos = await Agendamento.findAll({
+    where: { cliente_id: clienteId },
+    include: [
+        {
+            model: Profissional,
+            attributes: ['id', 'nome', 'profissao', 'categoria']
+        }
+    ],
+    order: [['data_hora_inicio', 'DESC']]
+});
+        return res.json(agendamentos);
+    } catch (erro) {
+        console.error('Erro ao buscar agendamentos do cliente:', erro);
+        return res.status(500).json({ erro: 'Erro ao buscar agendamentos do cliente.' });
+    }
+});
 
 module.exports = router;

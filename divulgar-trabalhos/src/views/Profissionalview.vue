@@ -39,6 +39,15 @@ function voltar() {
   router.back()
 }
 
+function solicitarTrabalho() {
+  router.push({
+    name: 'agendamento',
+    params: {
+      id: profissional.value.id
+    }
+  })
+}
+
 onMounted(() => {
   carregarProfissional()
 })
@@ -256,13 +265,14 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- BOTÃO -->
+          
           <button
-            type="button"
-            class="w-full mt-8 bg-[#D94E1E] text-white py-4 rounded-2xl text-sm font-bold hover:opacity-90 transition"
+          type="button"
+          @click="solicitarTrabalho"
+          class="w-full mt-8 bg-[#D94E1E] text-white py-4 rounded-2xl text-sm font-bold hover:opacity-90 transition"
           >
-            Solicitar trabalho
-          </button>
+           Solicitar trabalho
+         </button>
 
         </div>
       </section>

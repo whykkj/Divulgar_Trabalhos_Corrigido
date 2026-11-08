@@ -87,6 +87,22 @@ async function agendar() {
     return
   }
 
+  if (usuario.tipo !== 'cliente') {
+    erro.value = 'Somente contas de cliente podem solicitar agendamentos.'
+    return
+  }
+
+  const dataHoraSelecionada = new Date(`${data.value}T${hora.value}:00`)
+  if (Number.isNaN(dataHoraSelecionada.getTime()) || dataHoraSelecionada <= new Date()) {
+    erro.value = 'Escolha uma data e um horário futuros.'
+    return
+  }
+
+  if (Number(usuario.id) === Number(profissional.value.usuario_id)) {
+    erro.value = 'Você não pode agendar um serviço no seu próprio perfil.'
+    return
+  }
+
   const dadosAgendamento = {
     cliente_id: usuario.id,
     profissional_id: profissional.value.id,
@@ -146,7 +162,7 @@ async function agendar() {
 }
 
 function voltar() {
-  router.push(`/profissional/${route.params.id}`)
+  router.push('/')
 }
 
 onMounted(() => {
@@ -267,6 +283,7 @@ onMounted(() => {
 
         <input
           v-model="data"
+          :min="new Date().toLocaleDateString('en-CA')"
           type="date"
           class="w-full border border-slate-200 rounded-xl px-4 py-3 mb-5 outline-none focus:border-[#D94E1E]"
         />
@@ -281,7 +298,7 @@ onMounted(() => {
         </label>
 
         <input
-          v-model="horario"
+          v-model="hora"
           type="time"
           class="w-full border border-slate-200 rounded-xl px-4 py-3 mb-5 outline-none focus:border-[#D94E1E]"
         />
@@ -307,12 +324,12 @@ onMounted(() => {
 
         <button
           @click="agendar"
-          :disabled="enviando"
+          :disabled="agendando"
           class="w-full bg-[#D94E1E] text-white font-extrabold py-4 rounded-xl hover:bg-[#C34418] transition disabled:opacity-50"
         >
 
           {{
-            enviando
+            agendando
               ? 'Agendando...'
               : 'Confirmar agendamento'
           }}

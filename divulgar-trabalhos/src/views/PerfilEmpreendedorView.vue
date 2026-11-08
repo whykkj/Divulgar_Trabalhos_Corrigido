@@ -9,6 +9,7 @@ const profissao = ref('')
 const categoria = ref('')
 const descricao = ref('')
 const bairro = ref('')
+const cidade = ref('Belém')
 const telefone = ref('')
 const servicos = ref('')
 const disponibilidade = ref('')
@@ -17,38 +18,67 @@ const erro = ref('')
 const salvando = ref(false)
 try {
   const rascunho = JSON.parse(localStorage.getItem('perfilEmpreendedorRascunho') || '{}')
-  for (const [chave, campo] of Object.entries({ profissao, categoria, descricao, bairro, telefone, servicos, disponibilidade })) {
+  for (const [chave, campo] of Object.entries({ profissao, categoria, descricao, bairro, cidade, telefone, servicos, disponibilidade })) {
     if (typeof rascunho?.[chave] === 'string') campo.value = rascunho[chave]
   }
 } catch { /* Rascunho ausente ou inválido: mantém o formulário vazio. */ }
 
-function salvarPerfil() {
+async function salvarPerfil() {
   if (salvando.value) return
   erro.value = ''
 
-  if (
-    !profissao.value.trim() ||
-    !categoria.value ||
-    !descricao.value.trim() ||
-    !bairro.value.trim() ||
-    !telefone.value.trim()
-  ) {
+  if (!profissao.value.trim() || !categoria.value || !descricao.value.trim() || !bairro.value.trim() || !cidade.value.trim() || !telefone.value.trim()) {
     erro.value = 'Preencha todos os campos obrigatórios.'
+    return
+  }
+
+  let usuario
+  try {
+    usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
+  } catch {
+    usuario = null
+  }
+  if (!usuario?.id || usuario.tipo !== 'empreendedor') {
+    erro.value = 'Sua conta não foi encontrada. Faça o cadastro ou entre novamente.'
     return
   }
 
   salvando.value = true
   try {
-    localStorage.setItem('perfilEmpreendedorRascunho', JSON.stringify({
-      profissao: profissao.value.trim(), categoria: categoria.value,
-      descricao: descricao.value.trim(), bairro: bairro.value.trim(),
-      telefone: telefone.value.trim(), servicos: servicos.value.trim(),
-      disponibilidade: disponibilidade.value
-    }))
-    informar('Rascunho salvo neste navegador. A publicação para outras pessoas depende da conexão com o back-end.')
+    const geoResposta = await fetch(`http://localhost:3000/api/geocodificacao?${new URLSearchParams({ bairro: bairro.value.trim(), cidade: cidade.value.trim(), estado: 'PA' })}`)
+    const geoDados = await geoResposta.json()
+    if (!geoResposta.ok) {
+      erro.value = geoDados.erro || 'Não foi possível localizar o endereço informado.'
+      return
+    }
+
+    const resposta = await fetch('http://localhost:3000/api/profissionais', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        usuario_id: usuario.id,
+        nome: usuario.nome,
+        profissao: profissao.value.trim(),
+        categoria: categoria.value,
+        descricao: descricao.value.trim(),
+        bairro: bairro.value.trim(),
+        cidade: cidade.value.trim(),
+        latitude: geoDados.latitude,
+        longitude: geoDados.longitude,
+        telefone: telefone.value.trim()
+      })
+    })
+    const dados = await resposta.json()
+    if (!resposta.ok) {
+      erro.value = dados.erro || 'Não foi possível publicar seu perfil.'
+      return
+    }
+    localStorage.removeItem('perfilEmpreendedorRascunho')
+    informar('Seu perfil profissional foi cadastrado com sucesso!')
     router.push('/')
-  } catch {
-    erro.value = 'Não foi possível salvar neste navegador. Verifique as permissões de armazenamento.'
+  } catch (error) {
+    console.error('Erro ao salvar perfil profissional:', error)
+    erro.value = 'Não foi possível conectar ao servidor. Verifique se o backend está funcionando.'
   } finally {
     salvando.value = false
   }
@@ -148,7 +178,6 @@ function voltar() {
         </div>
 
         <!-- FORMULÁRIO -->
-        <p class="mb-4 rounded-xl bg-orange-50 p-3 text-xs text-slate-600">Este formulário salva um rascunho local. O perfil ainda não será publicado.</p>
         <form
           @submit.prevent="salvarPerfil"
           class="space-y-5"
@@ -263,6 +292,20 @@ function voltar() {
                 📍
               </span>
             </div>
+          </div>
+
+          <!-- CIDADE -->
+          <div>
+            <label for="cidade" class="block text-xs font-bold text-slate-700 mb-2">
+              Cidade <span class="text-[#D94E1E]">*</span>
+            </label>
+            <input
+              id="cidade"
+              v-model="cidade"
+              type="text"
+              placeholder="Ex.: Belém"
+              class="w-full bg-slate-50 text-slate-800 placeholder-slate-400 text-xs px-3.5 py-3 rounded-xl border border-slate-200 outline-none focus:bg-white focus:border-[#D94E1E] focus:ring-2 focus:ring-[#D94E1E]/20"
+            />
           </div>
 
           <!-- TELEFONE -->
